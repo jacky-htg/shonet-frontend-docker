@@ -1,0 +1,59 @@
+version: '3'
+services:
+    web:
+        image: nginx:alpine
+        volumes:
+            - ./www:/var/www/html
+            - ./config/nginx:/etc/nginx/conf.d
+            - ./config/ssl:/etc/nginx/ssl
+            - ./config/log:/var/log/nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        working_dir: /var/www/html
+        links:
+            - app
+            - go
+    app:
+        container_name: shonet-frontend-php
+        build:
+            context: ./
+        volumes:
+            - ./www:/var/www/html
+            - ./config/php/php.ini:/usr/local/etc/php/php.ini
+            - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+        working_dir: /var/www/html
+        links:
+            - mysql
+            - redis
+    go:
+        container_name: shonet-frontend-go
+        build:
+            context: .
+            dockerfile: Dockerfile-go
+        volumes:
+            - ./go:/go/src/github.com/jacky-htg/shonet-frontend
+        working_dir: /go/src/github.com/jacky-htg/shonet-frontend
+        ports:
+            - "8080:8080"
+        environment:
+            - GOPATH=/go
+        links:
+            - mysql
+            - redis
+        command: go run main.go
+    mysql:
+        image: mysql:5.7.20
+        ports:
+            - "33060:3306"
+        volumes:
+            - ../mysql_storage:/var/lib/mysql
+            - /etc/localtime:/etc/localtime
+        environment:
+            - "MYSQL_ROOT_PASSWORD=pass"
+            - "MYSQL_DATABASE=shonet_dev"
+    redis:
+        container_name: redis
+        image: "redis:alpine"
+        ports:
+            - "63790:6379"
