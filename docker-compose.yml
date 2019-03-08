@@ -1,6 +1,7 @@
 version: '3'
 services:
     web:
+        container_name: nginx
         image: nginx:alpine
         volumes:
             - ./www:/var/www/html
@@ -8,16 +9,15 @@ services:
             - ./config/ssl:/etc/nginx/ssl
             - ./config/log:/var/log/nginx
         ports:
-            - "80:80"
+        #    - "80:80"
             - "443:443"
         working_dir: /var/www/html
         links:
             - app
             - go
     app:
-        container_name: shonet-frontend-php
-        build:
-            context: ./
+        container_name: shonet-front-php
+        image: shonet/front-php:latest
         volumes:
             - ./www:/var/www/html
             - ./config/php/php.ini:/usr/local/etc/php/php.ini
@@ -27,10 +27,8 @@ services:
             - mysql
             - redis
     go:
-        container_name: shonet-frontend-go
-        build:
-            context: .
-            dockerfile: Dockerfile-go
+        container_name: shonet-front-go
+        image: shonet/front-go:latest
         volumes:
             - ./go:/go/src/github.com/jacky-htg/shonet-frontend
         working_dir: /go/src/github.com/jacky-htg/shonet-frontend
@@ -43,6 +41,7 @@ services:
             - redis
         command: go run main.go
     mysql:
+        container_name: mysql
         image: mysql:5.7.20
         ports:
             - "33060:3306"
