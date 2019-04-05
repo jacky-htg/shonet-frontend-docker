@@ -15,6 +15,7 @@ services:
         links:
             - app
             - go
+            - api
     app:
         container_name: shonet-front-php
         image: shonet/front-php:latest
@@ -56,3 +57,17 @@ services:
         image: "redis:alpine"
         ports:
             - "63790:6379"
+    api:
+        image: shonet/api:latest
+        volumes:
+            - ./api:/go/src/shonet-api
+        working_dir: /go/src/shonet-api
+        container_name: shonet-api
+        ports:
+            - "8081:8081"
+        environment:
+            - GOPATH=/go
+        links:
+            - redis
+            - mysql
+        command: go run main.go
